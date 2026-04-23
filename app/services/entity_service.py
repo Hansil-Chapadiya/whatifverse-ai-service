@@ -3,13 +3,15 @@ import re
 
 from app.utils.hf_client import hf_text
 
+MAX_ENTITIES = 5
+
 def _parse_entity_array(raw_text: str) -> list[str]:
     text = raw_text.strip()
 
     try:
         parsed = json.loads(text)
         if isinstance(parsed, list):
-            return [str(item).strip() for item in parsed if str(item).strip()]
+            return [str(item).strip() for item in parsed if str(item).strip()][:MAX_ENTITIES]
     except json.JSONDecodeError:
         pass
 
@@ -20,7 +22,7 @@ def _parse_entity_array(raw_text: str) -> list[str]:
     try:
         parsed = json.loads(match.group(0))
         if isinstance(parsed, list):
-            return [str(item).strip() for item in parsed if str(item).strip()]
+            return [str(item).strip() for item in parsed if str(item).strip()][:MAX_ENTITIES]
     except json.JSONDecodeError:
         return []
 
@@ -30,6 +32,7 @@ def _parse_entity_array(raw_text: str) -> list[str]:
 def generate_entities(model_response: str) -> list[str]:
     formatted_prompt = (
         "Extract important entities from the scenario.\n\n"
+        "Return maximum 5 entities only.\n"
         "Return strictly in this format:\n"
         "[\"entity1\", \"entity2\"]\n\n"
         f"Sentence: {model_response}"
